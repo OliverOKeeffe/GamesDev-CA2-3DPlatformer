@@ -212,3 +212,12 @@ Start importing Assets/Scenes/jsckscene.unity using Guid(5c3882cb0c834134e82b75c
  -> (artifact id: '9c1e7401ea768bc3a913aef2b7442482') in 0.005766 seconds
 Number of updated asset objects reloaded before import = 0
 Number of asset objects unloaded after import = 0
+========================================================================
+Received Import Request.
+  Time since last request: 725.973105 seconds.
+  path: Assets/Scenes/Level1 - jack.unity
+  artifactKey: Guid(9fc0d4010bbf28b4594072e72b8655ab) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scenes/Level1 - jack.unity using Guid(9fc0d4010bbf28b4594072e72b8655ab) Importer(815301076,1909f56bfc062723c751e8b465ee728b) [PhysX] Initialized MultithreadedTaskDispatcher with 8 workers.
+ -> (artifact id: 'a17a12ee0bcf5abb60c93930de87a545') in 0.041927 seconds
+Number of updated asset objects reloaded before import = 0
+Number of asset objects unloaded after import = 0

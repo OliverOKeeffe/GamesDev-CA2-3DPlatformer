@@ -36,3 +36,5 @@ Thumbs.db
 # Unity3D generated meta files
 *.pidb
 *.userprefs
+# Ignore Unity log files
+Logs/

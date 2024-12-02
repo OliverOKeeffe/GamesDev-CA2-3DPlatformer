@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Unit_08_BlendTreeanimation : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
     //v8 1D Blend Anim tree
     public float maximumSpeed; //rename public var speed
@@ -26,71 +26,66 @@ public class Unit_08_BlendTreeanimation : MonoBehaviour
     
     
     void Start() {
-
         characterController = GetComponent<CharacterController>();
         //v4 jump
         originalStepOffset = characterController.stepOffset;
         //v6. animation
         animator = GetComponent<Animator>();
-
     }
 
     void Update()
     {
-        //old input system
+        // Get input for horizontal and vertical movement
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
 
-        Vector3 movementDirection = new Vector3(horizontalInput, 0, verticalInput);
+        // Calculate movement direction relative to the character's facing direction
+        Vector3 forward = transform.forward * verticalInput;  // Forward (W/S)
+        Vector3 right = transform.right * horizontalInput;    // Right (A/D)
+        Vector3 movementDirection = forward + right;
 
-        //v8 1D Blend Anim tree
+        // v8 1D Blend Anim tree
         float inputMagnitude = Mathf.Clamp01(movementDirection.magnitude);
-       
 
+        // Adjust movement speed when shift key is held
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            inputMagnitude /= 2; //1/2 speed
+            inputMagnitude /= 2; // Half speed when shift is pressed
         }
 
-        //set Float of animator component to blend animations.
+        // Set animation parameters for blending
         animator.SetFloat("Input Magnitude", inputMagnitude, 0.15f, Time.deltaTime);
-        
+
+        // Calculate the actual movement speed
         float speed = inputMagnitude * maximumSpeed;
 
-
-        //Normalize diretion vector so that it has a range of 0-1
+        // Normalize the movement direction
         movementDirection.Normalize();
 
-        //v4 - Jump. update ySpeed with Gravity
+        // v4 - Jump. Update ySpeed with gravity
         ySpeed += Physics.gravity.y * Time.deltaTime;
-        //Debug.Log(ySpeed);
 
-        //v5. improve jump
+        // v5. improve jump - handle jump grace period
         if (characterController.isGrounded)
         {
-            lastGroundedTime = Time.time; // assign time since game started
+            lastGroundedTime = Time.time; // Assign time when grounded
         }
 
         if (Input.GetButtonDown("Jump"))
         {
-            jumpButtonPressedTime = Time.time; // assign time since game started
+            jumpButtonPressedTime = Time.time; // Assign time when jump button is pressed
         }
 
-
-        //v5. improve jump replace  if (characterController.isGrounded)
+        // Jump logic within grace period
         if (Time.time - lastGroundedTime <= jumpButtonGracePeriod)
         {
-
-            characterController.stepOffset = originalStepOffset;//reset characterController stepOffset
-            ySpeed = -0.5f;  //reset ySpeed 
-            //v5. improve jump. replace  Input.GetButtonDown("Jump")
+            characterController.stepOffset = originalStepOffset; // Reset step offset
+            ySpeed = -0.5f; // Small negative speed to stay grounded
             if (Time.time - jumpButtonPressedTime <= jumpButtonGracePeriod)
             {
-                ySpeed = jumpSpeed;   //apply jumpSpeed to ySpeed
-                //v5. improve jump. reset nullables back to null
-                // in order to avoid multiple jumps inside gracePeriod
-                jumpButtonPressedTime = null;
-                lastGroundedTime = null;
+                ySpeed = jumpSpeed; // Apply jump speed
+                jumpButtonPressedTime = null; // Reset jump button press time
+                lastGroundedTime = null; // Reset grounded time
             }
         }
         else
@@ -98,32 +93,18 @@ public class Unit_08_BlendTreeanimation : MonoBehaviour
             characterController.stepOffset = 0;
         }
 
-        // v4 - Jump. Local var vector3 velocity
-        // add ySpeed to velocity
-
-        //v8 replace magnitude with speed
-
+        // Combine movement direction with gravity (ySpeed)
         Vector3 velocity = movementDirection * speed;
-       
         velocity.y = ySpeed;
-       //Time.deltaTime is  required for the charControll Move method
-       characterController.Move(velocity * Time.deltaTime);
 
-        
+        // Apply the movement to the character
+        characterController.Move(velocity * Time.deltaTime);
 
+        // Rotate the character to face the direction of movement
         if (movementDirection != Vector3.zero)
         {
-            //changes character to point in direction of movement. 
-            //v6. animation 
-            //animator.SetBool("isMoving", true);
-
             Quaternion toRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime); 
-        } else
-        {
-            //v6. animation 
-            //animator.SetBool("isMoving", false);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
         }
     }
 }
-

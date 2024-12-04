@@ -23,6 +23,8 @@ Thumbs.db
 *.msi
 *.msm
 *.msp
+*.csproj
+
 
 # JetBrains Rider project files
 .idea/

@@ -41,13 +41,22 @@ public class Unit_08_BlendTreeanimation : MonoBehaviour
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
 
-        Vector3 movementDirection = new Vector3(horizontalInput, 0, verticalInput);
+        Vector3 movementDirection = transform.TransformDirection(new Vector3(horizontalInput, 0, verticalInput));
+
 
         //v8 1D Blend Anim tree
         float inputMagnitude = Mathf.Clamp01(movementDirection.magnitude);
        
 
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            inputMagnitude *= 0.5f; // Reduce magnitude to reflect slower movement
+            animator.SetBool("IsWalking", false); // Trigger walking animation
+        }
+        else
+        {
+            animator.SetBool("IsWalking", true); // Default to running animation
+        }
         {
             inputMagnitude /= 2; //1/2 speed
         }

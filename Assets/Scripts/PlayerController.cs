@@ -49,11 +49,11 @@ public class Unit_08_BlendTreeanimation : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             inputMagnitude *= 0.5f; // Reduce magnitude to reflect slower movement
-            animator.SetBool("IsWalking", false); // Trigger walking animation
+            animator.SetBool("IsWalking", true); // Trigger walking animation
         }
         else
         {
-            animator.SetBool("IsWalking", true); // Default to running animation
+            animator.SetBool("IsWalking", false); // Default to running animation
         }
 
         // Set Float of animator component to blend animations.

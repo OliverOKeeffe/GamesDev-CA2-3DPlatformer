@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Mountain
   - DungeonDoor
+  - AI
   layers:
   - Default
   - TransparentFX

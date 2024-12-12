@@ -4,114 +4,90 @@ using UnityEngine;
 
 public class Unit_08_BlendTreeanimation : MonoBehaviour
 {
-    [Header("References")]
-    private CharacterController controller;
-    private Animator animator;  // Reference to the Animator
-    [SerializeField] private Transform camera;
+    public float maximumSpeed;
+    public float rotationSpeed;
+    public float jumpSpeed;
+    private float ySpeed;
+    private float originalStepOffset;
+    public float jumpButtonGracePeriod;
+    private float? lastGroundedTime;
+    private float? jumpButtonPressedTime;
+    private Animator animator;
+    private CharacterController characterController;
 
-    [Header("Movement Settings")]
-    [SerializeField] private float walkSpeed = 6f;
-    [SerializeField] private float sprintSpeed = 12f;
-    [SerializeField] private float sprintTransitSpeed = 3f;
-    [SerializeField] private float turningSpeed = 1f;
-    [SerializeField] private float gravity = 9.81f;
-    [SerializeField] private float jumpHeight = 5f;
-
-    private float verticalVelocity;  // Change 'walkSpeed' to 'speed'
-    private float speed;  // Store the current speed
-    private float moveInput;
-    private float turnInput;
-
-    private void Start()
+    void Start()
     {
-        controller = GetComponent<CharacterController>();
-        animator = GetComponent<Animator>();  // Get the Animator component
+        characterController = GetComponent<CharacterController>();
+        originalStepOffset = characterController.stepOffset;
+        animator = GetComponent<Animator>();
     }
 
-    private void Update()
+    void Update()
     {
-        InputManagement();
-        Movement();
-    }
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
 
-    private void InputManagement()
-    {
-        moveInput = Input.GetAxis("Vertical");
-        turnInput = Input.GetAxis("Horizontal");
-    }
+        Vector3 movementDirection = transform.TransformDirection(new Vector3(horizontalInput, 0, verticalInput));
+        float inputMagnitude = Mathf.Clamp01(movementDirection.magnitude);
 
-    private void Movement()
-    {
-        GroundMovement();
-        turn();
-
-        // Update the animator parameters for Blend Tree using only InputMagnitude
-        UpdateAnimationParameters();
-    }
-
-    private void GroundMovement()
-    {
-        Vector3 move = new Vector3(turnInput, 0, moveInput);
-        move = transform.TransformDirection(move);
-
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            speed = Mathf.Lerp(speed, sprintSpeed, sprintTransitSpeed * Time.deltaTime);
+            inputMagnitude *= 1f;
+            animator.SetBool("IsWalking", false);
         }
         else
         {
-            speed = Mathf.Lerp(speed, walkSpeed, sprintTransitSpeed * Time.deltaTime);
+            inputMagnitude *= 0.5f;
+            animator.SetBool("IsWalking", true);
         }
 
-        move.y = VerticalForceCalculation();  // Vertical movement (gravity and jump)
+        animator.SetFloat("InputMagnitude", inputMagnitude, 0.15f, Time.deltaTime);
+        float speed = inputMagnitude * maximumSpeed;
+        movementDirection.Normalize();
+        ySpeed += Physics.gravity.y * Time.deltaTime;
 
-        move *= speed;  // Adjust movement speed
-
-        controller.Move(move * Time.deltaTime);
-    }
-
-    private void turn()
-    {
-        // Use Mathf.Abs instead of Math.Abs
-        if (Mathf.Abs(turnInput) > 0 || Mathf.Abs(moveInput) > 0)
+        if (characterController.isGrounded)
         {
-            Vector3 currentLookDirection = camera.forward;
-            currentLookDirection.y = 0;
-
-            Quaternion targetRotation = Quaternion.LookRotation(currentLookDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turningSpeed * Time.deltaTime);
+            lastGroundedTime = Time.time;
+            animator.SetBool("isJumping", false);
+            animator.SetBool("isFalling", false);
         }
-    }
 
-    private void UpdateAnimationParameters()
-    {
-        // Calculate input magnitude (this is the factor that drives the Blend Tree)
-        float inputMagnitude = Mathf.Clamp01(new Vector3(turnInput, 0, moveInput).magnitude);
-
-        // Update the "InputMagnitude" parameter in the animator for the Blend Tree
-        animator.SetFloat("InputMagnitude", inputMagnitude);  // Ensure that the parameter name matches in the Animator
-
-        // Handle jump movement (No additional animation parameters needed)
-        if (!controller.isGrounded)
+        if (Input.GetButtonDown("Jump"))
         {
-            verticalVelocity -= gravity * Time.deltaTime;
+            jumpButtonPressedTime = Time.time;
         }
-    }
 
-    private float VerticalForceCalculation()
-    {
-        if (controller.isGrounded)
+        if (Time.time - lastGroundedTime <= jumpButtonGracePeriod)
         {
-            verticalVelocity = -1f;  // Slight negative velocity to keep the character grounded
-            if (Input.GetButtonDown("Jump"))
+            characterController.stepOffset = originalStepOffset;
+            ySpeed = -0.5f;
+            if (Time.time - jumpButtonPressedTime <= jumpButtonGracePeriod)
             {
-                verticalVelocity = Mathf.Sqrt(jumpHeight * gravity * 2);
+                ySpeed = jumpSpeed;
+                animator.SetBool("isJumping", true);
+                jumpButtonPressedTime = null;
+                lastGroundedTime = null;
             }
         }
         else
         {
-            verticalVelocity -= gravity * Time.deltaTime;
+            characterController.stepOffset = 0;
         }
-        return verticalVelocity;
+
+        Vector3 velocity = movementDirection * speed;
+        velocity.y = ySpeed;
+        characterController.Move(velocity * Time.deltaTime);
+
+        if (movementDirection != Vector3.zero)
+        {
+            Quaternion toRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+        }
+
+        if (!characterController.isGrounded && ySpeed < 0)
+        {
+            animator.SetBool("isFalling", true);
+        }
     }
 }

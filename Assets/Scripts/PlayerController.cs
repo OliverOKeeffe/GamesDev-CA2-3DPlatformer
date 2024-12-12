@@ -15,6 +15,8 @@ public class Unit_08_BlendTreeanimation : MonoBehaviour
     private Animator animator;
     private CharacterController characterController;
 
+    public Transform cameraTransform; // Reference to the camera transform
+
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -27,9 +29,15 @@ public class Unit_08_BlendTreeanimation : MonoBehaviour
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
 
-        Vector3 movementDirection = transform.TransformDirection(new Vector3(horizontalInput, 0, verticalInput));
+        // Movement direction relative to camera
+        Vector3 cameraForward = cameraTransform.forward;
+        cameraForward.y = 0;
+        cameraForward.Normalize();
+        Vector3 movementDirection = cameraForward * verticalInput + cameraTransform.right * horizontalInput;
+
         float inputMagnitude = Mathf.Clamp01(movementDirection.magnitude);
 
+        // Adjust walking speed and animation
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             inputMagnitude *= 1f;
@@ -42,52 +50,50 @@ public class Unit_08_BlendTreeanimation : MonoBehaviour
         }
 
         animator.SetFloat("InputMagnitude", inputMagnitude, 0.15f, Time.deltaTime);
-        float speed = inputMagnitude * maximumSpeed;
-        movementDirection.Normalize();
+
+        // Apply gravity
         ySpeed += Physics.gravity.y * Time.deltaTime;
 
+        // Jumping and falling logic
         if (characterController.isGrounded)
         {
-            lastGroundedTime = Time.time;
-            animator.SetBool("isJumping", false);
-            animator.SetBool("isFalling", false);
-        }
-
-        if (Input.GetButtonDown("Jump"))
-        {
-            jumpButtonPressedTime = Time.time;
-        }
-
-        if (Time.time - lastGroundedTime <= jumpButtonGracePeriod)
-        {
-            characterController.stepOffset = originalStepOffset;
             ySpeed = -0.5f;
-            if (Time.time - jumpButtonPressedTime <= jumpButtonGracePeriod)
+            animator.SetBool("IsFalling", false); // Not falling when grounded
+
+            if (Input.GetButtonDown("Jump"))
             {
                 ySpeed = jumpSpeed;
-                animator.SetBool("isJumping", true);
-                jumpButtonPressedTime = null;
-                lastGroundedTime = null;
+                animator.SetBool("IsJumping", true); // Start jumping
+            }
+            else
+            {
+                animator.SetBool("IsJumping", false); // Reset jump animation
             }
         }
         else
         {
-            characterController.stepOffset = 0;
+            if (ySpeed > 0)
+            {
+                animator.SetBool("IsJumping", true); // Jumping upwards
+                animator.SetBool("IsFalling", false); // Not falling while jumping up
+            }
+            else if (ySpeed < 0)
+            {
+                animator.SetBool("IsFalling", true); // Falling downwards
+                animator.SetBool("IsJumping", false); // Stop jump animation when falling
+            }
         }
 
-        Vector3 velocity = movementDirection * speed;
+        // Character movement
+        Vector3 velocity = movementDirection * (inputMagnitude * maximumSpeed);
         velocity.y = ySpeed;
         characterController.Move(velocity * Time.deltaTime);
 
+        // Rotation towards movement direction
         if (movementDirection != Vector3.zero)
         {
             Quaternion toRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
-        }
-
-        if (!characterController.isGrounded && ySpeed < 0)
-        {
-            animator.SetBool("isFalling", true);
         }
     }
 }

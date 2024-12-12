@@ -1,17 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; // Required for scene management
+using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
     public int currentHealth, maxHealth, DamageAmmount;
     public Healthbar healthbar;
 
+    private string currentLevel;
+
     void Start()
     {
         currentHealth = maxHealth;
         healthbar?.SetMaxHealth(currentHealth); // Initialize health bar
+
+        // Store the current scene name
+        currentLevel = SceneManager.GetActiveScene().name;
     }
 
     public void DealDamage()
@@ -23,13 +28,14 @@ public class PlayerHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            ResetScene();
+            TriggerDeath();
         }
     }
 
-    private void ResetScene()
+    private void TriggerDeath()
     {
-        Debug.Log("Player health reached zero. Resetting scene...");
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the current scene
+        Debug.Log("Player health reached zero. Loading death screen...");
+        PlayerPrefs.SetString("LevelToRestart", currentLevel); // Store the level in PlayerPrefs
+        SceneManager.LoadScene("DeathScreen"); // Replace with the actual name of your death screen scene
     }
 }

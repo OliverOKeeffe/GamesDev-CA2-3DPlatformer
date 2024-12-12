@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class PlayerCollision : MonoBehaviour
 {
-    public float respawnTime = 2f;  // Delay before switching to the death screen
+    public float respawnTime = 0.5f;  // Delay before switching to the death screen
     private DeathHandler deathHandler;  // Reference to the DeathHandler script
     private string currentLevel;
 
@@ -39,8 +39,9 @@ public class PlayerCollision : MonoBehaviour
     {
         if (deathHandler != null)
         {
-            // Pass the current level name to the DeathHandler to store it
-            deathHandler.ShowDeathScreen(currentLevel);
+            string currentLevel = SceneManager.GetActiveScene().name; // Get the current level name
+            deathHandler.ShowDeathScreen(currentLevel); // Pass it to DeathHandler
         }
     }
+
 }

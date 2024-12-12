@@ -1,36 +1,42 @@
-using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine;
 
 public class DeathHandler : MonoBehaviour
 {
-    // Variable to hold the current level name
+    private static DeathHandler instance; // Singleton to persist data
     private string levelToRestart;
 
-    // This function is called when the player dies, passing the current level name
-    public void ShowDeathScreen(string levelName)
+    void Awake()
     {
-        levelToRestart = levelName;  // Store the level name when the death screen is triggered
-        Debug.Log("Death screen shown for level: " + levelName);  // Debug log to confirm the level name is being passed
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject); // Destroy duplicate instances
+            return;
+        }
 
-        // Load the DeathScreen scene
-        SceneManager.LoadScene("DeathScreen");  // Ensure that the scene name matches exactly
-        Debug.Log("Transitioning to DeathScreen...");  // Confirm scene transition
+        instance = this;
+        DontDestroyOnLoad(gameObject); // Persist this object across scenes
     }
 
-    // Method to restart the game (reload the level that was passed)
+    public void ShowDeathScreen(string levelName)
+    {
+        levelToRestart = levelName;
+        Debug.Log("Death screen shown for level: " + levelName);
+        SceneManager.LoadScene("DeathScreen");
+    }
+
     public void RestartGame()
     {
         if (!string.IsNullOrEmpty(levelToRestart))
         {
-            Debug.Log("Restarting level: " + levelToRestart);  // Debug log to confirm the level is restarting
+            Debug.Log("Restarting level: " + levelToRestart);
             SceneManager.LoadScene(levelToRestart);
         }
     }
 
-    // Method to go back to the main menu (or any other scene)
     public void GoToMainMenu()
     {
         Debug.Log("Going to Main Menu");
-        SceneManager.LoadScene("MainMenu");  // Ensure "MainMenu" is the name of your main menu scene
+        SceneManager.LoadScene("MainMenu");
     }
 }

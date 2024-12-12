@@ -1,16 +1,26 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;  // For scene management
+using UnityEngine.SceneManagement;
 
 public class DeathScreen : MonoBehaviour
 {
-    // Method to restart the game (reload Level1)
+    // Method to restart the game (reload the stored level)
     public void RestartGame()
     {
-        // You can manually specify the level scene here
-        SceneManager.LoadScene("Level1");  // Replace "Level1" with your level's scene name if it's different
+        Debug.Log("Restart button clicked.");
+
+        // Access the DeathHandler to call RestartGame
+        DeathHandler deathHandler = FindObjectOfType<DeathHandler>();
+        if (deathHandler != null)
+        {
+            deathHandler.RestartGame(); // Use the RestartGame method from DeathHandler
+        }
+        else
+        {
+            Debug.LogError("DeathHandler not found in the scene!");
+        }
     }
 
-    // Method to go back to the main menu (or any other scene)
+    // Method to go back to the main menu
     public void GoToMainMenu()
     {
         SceneManager.LoadScene("MainMenu");  // Make sure "MainMenu" is the name of your main menu scene

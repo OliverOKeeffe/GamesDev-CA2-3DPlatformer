@@ -40,8 +40,15 @@ public class PlayerCollision : MonoBehaviour
         if (deathHandler != null)
         {
             string currentLevel = SceneManager.GetActiveScene().name; // Get the current level name
+            Debug.Log("Passing current level to DeathHandler: " + currentLevel); // Log the current level name
             deathHandler.ShowDeathScreen(currentLevel); // Pass it to DeathHandler
         }
+        else
+        {
+            Debug.LogError("DeathHandler is null!");
+        }
+        Debug.Log("Triggering death in level: " + currentLevel);
+
     }
 
 }

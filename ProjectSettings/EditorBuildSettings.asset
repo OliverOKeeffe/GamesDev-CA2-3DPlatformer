@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Level2-oliver.unity
     guid: 92d1d0d47e0d7094d9f33bbcc41d0740
+  - enabled: 1
+    path: Assets/WinScreen.unity
+    guid: 062e654036614ce45ac4ff0b8cb0c27a
   m_configObjects: {}

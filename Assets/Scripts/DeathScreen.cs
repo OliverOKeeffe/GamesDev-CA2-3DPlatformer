@@ -12,7 +12,7 @@ public class DeathScreen : MonoBehaviour
         DeathHandler deathHandler = FindObjectOfType<DeathHandler>();
         if (deathHandler != null)
         {
-            Debug.Log("Restarting game using DeathHandler.");
+            Debug.Log($"levelToRestart in DeathHandler: {deathHandler}");
             deathHandler.RestartGame(); // Use the RestartGame method from DeathHandler
         }
         else
